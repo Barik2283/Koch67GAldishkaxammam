@@ -2,7 +2,7 @@
   "use strict";
 
   const STORAGE_KEY = "agent-lab-ru:v1";
-  const scenario = window.AGENT_LAB_SCENARIOS.find((item) => item.id === "mars");
+  let scenario = window.AGENT_LAB_SCENARIOS.find((item) => item.id === "mars");
   const $ = (selector, root = document) => root.querySelector(selector);
   const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
 
@@ -20,6 +20,10 @@
       .replaceAll(">", "&gt;")
       .replaceAll('"', "&quot;")
       .replaceAll("'", "&#039;");
+  }
+
+  function getScenarioById(id) {
+    return window.AGENT_LAB_SCENARIOS.find((item) => item.id === id) || scenario;
   }
 
   function initialObjectives() {
@@ -47,8 +51,25 @@
   }
 
   function normalizeState(candidate) {
-    const base = createInitialState();
-    if (!candidate || candidate.version !== 1 || candidate.currentScenario !== scenario.id) return base;
+    const baseScenario = getScenarioById(candidate?.currentScenario || "mars");
+    const base = {
+      version: 1,
+      currentScenario: baseScenario.id,
+      screen: "intro",
+      phase: "build",
+      activeTab: "agents",
+      teacherMode: false,
+      selectedAgentId: null,
+      agents: [],
+      world: { ...baseScenario.initialState },
+      objectives: Object.fromEntries(baseScenario.mission.objectives.map((o) => [o.id, false])),
+      countdown: baseScenario.mission.countdown,
+      logs: [],
+      run: null,
+      activeStep: null,
+      hintIndex: 0
+    };
+    if (!candidate || candidate.version !== 1) return base;
     return {
       ...base,
       ...candidate,
@@ -65,7 +86,7 @@
         rag: Array.isArray(agent.rag) ? agent.rag : [],
         skills: Array.isArray(agent.skills) ? agent.skills : [],
         tools: Array.isArray(agent.tools) ? agent.tools : []
-      })).filter((agent) => scenario.agents.some((template) => template.id === agent.templateId)) : [],
+      })).filter((agent) => baseScenario.agents.some((template) => template.id === agent.templateId)) : [],
       logs: Array.isArray(candidate.logs) ? candidate.logs.slice(-80) : [],
       activeStep: null
     };
@@ -633,7 +654,22 @@
     $("#back-to-intro").addEventListener("click", () => showScreen("intro"));
     elements["mission-grid"].addEventListener("click", (event) => {
       const card = event.target.closest("[data-scenario]");
-      if (card?.dataset.scenario === "mars") showScreen("lab");
+      if (!card) return;
+      const scenarioId = card.dataset.scenario;
+      const scenarioData = window.AGENT_LAB_SCENARIOS.find((s) => s.id === scenarioId);
+      if (!scenarioData?.available) return;
+      
+      state.currentScenario = scenarioId;
+      scenario = scenarioData;
+      state.world = { ...scenarioData.initialState };
+      state.objectives = Object.fromEntries(scenarioData.mission.objectives.map((o) => [o.id, false]));
+      state.countdown = scenarioData.mission.countdown;
+      state.agents = [];
+      state.logs = [];
+      state.run = null;
+      saveState();
+      renderAll();
+      showScreen("lab");
     });
 
     $$(".library-tabs button").forEach((button) => button.addEventListener("click", () => {
