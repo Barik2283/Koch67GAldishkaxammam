@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#080b14">
+  <title>Agent Lab — лаборатория ИИ-агентов</title>
+  <link rel="stylesheet" href="css/style.css">
+  <script src="js/scenarios.js" defer></script>
+  <script src="js/validation.js" defer></script>
+  <script src="js/simulator.js" defer></script>
+  <script src="js/app.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main-content">К основному содержимому</a>
+
+  <main id="main-content">
+    <section class="screen intro-screen is-active" id="intro-screen" aria-labelledby="intro-title">
+      <div class="intro-grid" aria-hidden="true"></div>
+      <div class="intro-orbit intro-orbit--one" aria-hidden="true"></div>
+      <div class="intro-orbit intro-orbit--two" aria-hidden="true"></div>
+      <div class="intro-content">
+        <p class="eyebrow"><span class="status-dot"></span> Учебная симуляция · полностью офлайн</p>
+        <h1 id="intro-title">AGENT <span>LAB</span></h1>
+        <p class="intro-lead">Построй ИИ-команду. Дай ей знания. Научи действовать. И проверь, переживёт ли она кризис.</p>
+        <div class="concept-row" aria-label="Ключевые понятия">
+          <span>ЦЕЛЬ</span><span>RAG</span><span>SKILL</span><span>TOOL</span><span>КОМАНДА</span>
+        </div>
+        <button class="button button--primary button--large" id="start-button" type="button">Начать практику <span aria-hidden="true">→</span></button>
+        <p class="keyboard-note">Работает локально · данные остаются в браузере · <kbd>F</kbd> — полный экран</p>
+      </div>
+      <aside class="intro-brief" aria-label="Сводка миссии">
+        <p class="micro-label">ВХОДЯЩИЙ СИГНАЛ</p>
+        <div class="signal-line"><span></span><span></span><span></span><span></span><span></span></div>
+        <p>Станция «Арес-7»</p>
+        <strong>Посадка через 6 часов</strong>
+        <div class="brief-stats"><span>O₂ <b>64%</b></span><span>ЭНЕРГИЯ <b>38%</b></span></div>
+      </aside>
+    </section>
+
+    <section class="screen mission-screen" id="mission-screen" aria-labelledby="mission-title">
+      <header class="screen-header">
+        <div>
+          <p class="eyebrow">Шаг 01 · контекст</p>
+          <h2 id="mission-title">Выберите миссию</h2>
+          <p>Каждая миссия тренирует один архитектурный принцип.</p>
+        </div>
+        <button class="button button--ghost" id="back-to-intro" type="button">← Назад</button>
+      </header>
+      <div class="mission-grid" id="mission-grid"></div>
+    </section>
+
+    <section class="screen lab-screen" id="lab-screen" aria-labelledby="lab-title">
+      <header class="lab-header">
+        <div class="brand-lockup">
+          <span class="brand-mark" aria-hidden="true">AL</span>
+          <div><strong id="lab-title">AGENT LAB</strong><small>архитектурный тренажёр</small></div>
+        </div>
+        <div class="phase-indicator" aria-live="polite">
+          <span class="phase-step is-current" data-phase="build">01 <b>Сборка</b></span>
+          <i></i>
+          <span class="phase-step" data-phase="simulate">02 <b>Симуляция</b></span>
+          <i></i>
+          <span class="phase-step" data-phase="result">03 <b>Разбор</b></span>
+        </div>
+        <div class="header-actions">
+          <label class="switch-control" title="Открывает ручное управление сценарием">
+            <input id="teacher-toggle" type="checkbox">
+            <span aria-hidden="true"></span>
+            Режим преподавателя
+          </label>
+          <button class="icon-button" id="fullscreen-button" type="button" title="Полный экран (F)" aria-label="Переключить полный экран">⛶</button>
+        </div>
+      </header>
+
+      <div class="lab-layout">
+        <aside class="library-panel panel" aria-labelledby="library-title">
+          <div class="panel-heading">
+            <div><p class="micro-label">КОНСТРУКТОР</p><h2 id="library-title">Компоненты</h2></div>
+            <span class="count-badge" id="library-count">0</span>
+          </div>
+          <div class="library-tabs" role="tablist" aria-label="Типы компонентов">
+            <button role="tab" aria-selected="true" data-tab="agents" type="button">Агенты</button>
+            <button role="tab" aria-selected="false" data-tab="rag" type="button">RAG</button>
+            <button role="tab" aria-selected="false" data-tab="skills" type="button">Навыки</button>
+            <button role="tab" aria-selected="false" data-tab="tools" type="button">Инструменты</button>
+          </div>
+          <div class="component-list" id="component-list" aria-live="polite"></div>
+          <div class="library-help" id="library-help">
+            <span aria-hidden="true">↗</span>
+            <p><strong>Сначала добавьте агента.</strong> Затем выберите его в центре и назначьте знания, навыки и инструменты.</p>
+          </div>
+        </aside>
+
+        <section class="architecture-panel panel" aria-labelledby="architecture-title">
+          <div class="panel-heading architecture-heading">
+            <div>
+              <p class="micro-label">СХЕМА СИСТЕМЫ</p>
+              <h2 id="architecture-title">Архитектура команды</h2>
+            </div>
+            <div class="selected-agent-label" id="selected-agent-label">Агент не выбран</div>
+          </div>
+          <div class="architecture-canvas" id="architecture-canvas" tabindex="0" aria-label="Рабочая область архитектуры">
+            <canvas id="connections-canvas" aria-hidden="true"></canvas>
+            <div class="agent-grid" id="agent-grid"></div>
+            <div class="empty-architecture" id="empty-architecture">
+              <span class="empty-node" aria-hidden="true">＋</span>
+              <h3>Начните с команды</h3>
+              <p>Перетащите агента сюда или нажмите «Добавить» в библиотеке.</p>
+            </div>
+          </div>
+          <div class="architecture-footer">
+            <button class="button button--secondary" id="validate-button" type="button">Проверить архитектуру</button>
+            <button class="button button--primary" id="run-button" type="button">Запустить систему <span aria-hidden="true">▶</span></button>
+          </div>
+        </section>
+
+        <aside class="mission-panel panel" aria-labelledby="active-mission-title">
+          <div class="mission-kicker"><span class="status-dot status-dot--red"></span> Активная миссия</div>
+          <h2 id="active-mission-title">Марсианская станция</h2>
+          <p class="mission-copy" id="mission-copy"></p>
+          <div class="countdown-card">
+            <span>ДО ПОСАДКИ</span>
+            <strong id="countdown-value">06:00:00</strong>
+            <small>критическое окно</small>
+          </div>
+          <div class="objectives" id="objective-list"></div>
+          <div class="world-state" id="world-state"></div>
+          <div class="teacher-tools" id="teacher-tools" hidden>
+            <p class="micro-label">ПУЛЬТ ПРЕПОДАВАТЕЛЯ</p>
+            <button class="button button--warning" id="event-button" type="button">⚡ Вызвать событие</button>
+            <button class="button button--ghost" id="hint-button" type="button">💡 Показать подсказку</button>
+            <button class="button button--ghost" id="reference-button" type="button">Открыть эталон</button>
+            <button class="button button--danger" id="reset-button" type="button">Сбросить игру</button>
+          </div>
+        </aside>
+      </div>
+
+      <section class="log-panel panel" aria-labelledby="log-title">
+        <div class="log-toolbar">
+          <div>
+            <p class="micro-label">ТЕЛЕМЕТРИЯ</p>
+            <h2 id="log-title">Журнал системы</h2>
+          </div>
+          <div class="simulation-status"><span id="simulation-led"></span><b id="simulation-status">ОЖИДАНИЕ</b></div>
+          <div class="simulation-controls">
+            <label>Скорость
+              <select id="speed-select" aria-label="Скорость симуляции">
+                <option value="1">1×</option><option value="2">2×</option><option value="4">4×</option>
+              </select>
+            </label>
+            <button class="button button--ghost button--compact" id="pause-button" type="button" disabled>Пауза</button>
+            <button class="button button--secondary button--compact" id="next-button" type="button" disabled>Следующий шаг</button>
+          </div>
+        </div>
+        <div class="log-feed" id="log-feed" role="log" aria-live="polite" aria-relevant="additions">
+          <div class="log-empty"><span>_</span> Журнал пуст. Соберите систему и запустите проверку.</div>
+        </div>
+      </section>
+    </section>
+  </main>
+
+  <div class="modal-layer" id="modal-layer" hidden>
+    <div class="modal-backdrop" data-close-modal></div>
+    <section class="modal" id="agent-modal" role="dialog" aria-modal="true" aria-labelledby="agent-modal-title" hidden>
+      <button class="modal-close" type="button" data-close-modal aria-label="Закрыть">×</button>
+      <p class="eyebrow">Настройка узла</p>
+      <h2 id="agent-modal-title">Настроить агента</h2>
+      <form id="agent-form">
+        <input id="agent-id" type="hidden">
+        <label>Имя агента<input id="agent-name" required maxlength="32"></label>
+        <label>Роль<input id="agent-role" required maxlength="48"></label>
+        <label>Цель<textarea id="agent-goal" required rows="3" maxlength="180"></textarea></label>
+        <div class="form-grid">
+          <label>Получает задачи от<select id="agent-input"></select></label>
+          <label>Передаёт результат<select id="agent-output"></select></label>
+        </div>
+        <div class="assigned-summary" id="assigned-summary"></div>
+        <div class="modal-actions">
+          <button class="button button--danger" id="remove-agent" type="button">Удалить агента</button>
+          <button class="button button--primary" type="submit">Сохранить настройки</button>
+        </div>
+      </form>
+    </section>
+
+    <section class="modal modal--wide" id="report-modal" role="dialog" aria-modal="true" aria-labelledby="report-title" hidden>
+      <button class="modal-close" type="button" data-close-modal aria-label="Закрыть">×</button>
+      <div id="report-content"></div>
+    </section>
+
+    <section class="modal" id="event-modal" role="dialog" aria-modal="true" aria-labelledby="event-title" hidden>
+      <button class="modal-close" type="button" data-close-modal aria-label="Закрыть">×</button>
+      <p class="eyebrow">Внешний сигнал</p>
+      <h2 id="event-title">Выберите событие</h2>
+      <div class="event-list" id="event-list"></div>
+    </section>
+  </div>
+
+  <div class="toast-region" id="toast-region" aria-live="polite"></div>
+</body>
+</html>
